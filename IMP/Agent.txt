@@ -1,0 +1,18 @@
+
+local myUrl = "http://yourserver/post.php";
+
+local headers =  { "Content-Type": "application/x-www-form-urlencoded" };
+
+function httpPostTo (data) {
+  server.log( data )
+  local request = http.post(myUrl, headers, data);
+  local response = request.sendsync();
+  //return response;
+}
+ 
+device.on("updateTemp", function(Val) {
+    
+   //local data = http.jsondecode(Val)
+   http.post(myUrl, headers,  http.urlencode(Val)).sendsync();
+     
+});

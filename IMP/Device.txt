@@ -1,0 +1,44 @@
+hardware.pin1.configure(ANALOG_IN);
+ 
+local voltage = hardware.voltage();
+server.log(format("Running at %.2f V", voltage));
+
+
+local lastRawValue = 0;
+ 
+server.log("Hardware Configured");
+ 
+function checkTemp() {
+    //server.log("Checking Voltage")
+    local rawValue = hardware.pin1.read();
+    if (math.abs(rawValue - lastRawValue) > 25) {
+        local Ratio = 65535.0 / voltage;  //Counts Per Volt.
+        local Voltage = rawValue / Ratio;
+       
+        lastRawValue = rawValue;
+        //server.log("Raw: "  + rawValue)
+        //server.log("Volts " + Voltage)
+        local TempC = (100 * Voltage) - 50;
+        local TempF = ((TempC * 9) / 5) + 32;
+        //server.log("DegC,  " + TempC)
+        server.log("DecF, " + TempF)
+        
+              
+        local DateTime = date();
+        local sDateTime = (DateTime["month"] + 1) + "\\" + DateTime["day"] + "\\" + DateTime["year"];
+        local sTime = DateTime["hour"] + ":" + DateTime["min"] + ":" + DateTime["sec"];
+        local DTStamp = sDateTime + " " + sTime;
+        server.log(DTStamp)
+        
+        local table = { "Temp" : TempF, "DateTime": DTStamp}
+        
+        agent.send("updateTemp", table)
+    
+    }
+ 
+    imp.wakeup(60, checkTemp);
+}
+ 
+server.log("Started");
+imp.configure("Pole Barn Temp Monitor", [], []);
+checkTemp();
